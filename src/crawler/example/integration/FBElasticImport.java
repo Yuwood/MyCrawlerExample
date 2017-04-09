@@ -14,7 +14,7 @@ public class FBElasticImport {
     static String elasticPort = "9200" ;
     static String elasticIndex = "fb";
     static String elasticIndexType = "data";
-    static String pageName = "imayday555";
+    static String pageName = "iamball0228";
     static long start = 1491696000;
     static int days = 7;
 
