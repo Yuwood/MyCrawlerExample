@@ -6,89 +6,75 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 /**
- * Created by Student on 2016/7/10.
+ * Created by Abola Lee on 2016/7/10.
  */
 public class FBElasticImport {
 
-    static String elasticHost = "localhost" ;
+    static String elasticHost = "192.168.152.128" ;
     static String elasticPort = "9200" ;
     static String elasticIndex = "fb";
     static String elasticIndexType = "data";
-
+    static String pageName = "imayday555";
+    static long start = 1491696000;
+    static int days = 7;
 
     public static void main(String[] args) {
-
-        // 遠端資料路徑
-        // [query sample]
-        // search?fields=name,id,likes,talking_about_count&limit=1000&q=靠北&type=page
-//		curl -i -X GET \
-        //"https://graph.facebook.com/v2.5/search?q=%E9%9D%A0%E5%8C%97&type=page&limit=10&fields=name%2Cid%2Clikes&access_token=EAACEdEose0cBAFnZB7WVs6my1yJ2zd4hP2z1evpZAgzhE4kQgvnfdjdzZCOT6vAcr6vnULgBmbZB18bTg9evDDSOtmHpbX69l9dUiSJPZBc2vB4KyafJH4wfTv2XFeUpnxencVdma2TsqZCnzTWCK0bZBrE1eZAKFx7NXBNXl90vjwZDZD"
-        String uri =
-                "https://graph.facebook.com/v2.5"
-                        + "/YahooTWNews/feed?fields=message,likes.limit(1).summary(true),created_time&until=1452816000&since=1450137600&limit=100"
-//				+ "/search?q=%E9%9D%A0%E5%8C%97&type=page&limit=10&fields=name%2Cid%2Clikes"
-                        + "&access_token=EAACEdEose0cBAEh7ET4ipcHRsHZC1fsD34GynnXed0USnAB7x9fwqyfAwZBLIPND8k6ZAtlEZAc8Tazka7cZCX9o2sTCjpWdsaZCGq5fgcBHizFwiLmjFfaifbpVD3QSUvNCUbVEQZAypcUdAUthIMruV9k8V02rjeI3O8Mi9GsZAQZDZD";
+        for (long datatime = start ; datatime > start-86400*days ;datatime-=3600*8) {
+            String uri =
+                    "https://graph.facebook.com/v2.6"
+                            + "/"+pageName +"/feed?fields=message,comments.limit(0).summary(true),likes.limit(0).summary(true),created_time&since="+(datatime-3600*8)+"&until="+datatime+"&limit=100"
+                            + "&access_token=204620726697053%7Cc115418baec73ca230041cba5cdab724";
 
 
+            try {
 
-        // Jsoup select 後回傳的是  Elements 物件
-//		[data sample]
-//		----
-//		{
-//			"data": [
-//			{
-//				"name": "靠北工程師",
-//					"id": "1632027893700148",
-//					"likes": 174587,
-//					"talking_about_count": 188119
-//			}
-//		}
-
-//        System.out.println(CrawlerPack.start()
-//                .getFromJson(uri));
-        Elements elems =
-                CrawlerPack.start()
-                        .getFromJson(uri)
-                        .select("data:has(created_time)");
-//System.out.println(elems);
-//        String output = "id,名稱,按讚數,討論人數\n";
-
-        // 遂筆處理
-        for( Element data: elems ){
+                Elements elems =
+                        CrawlerPack.start()
+                                .getFromJson(uri)
+                                .select("data:has(created_time)");
+//              System.out.println(elems);
+//              String output = "id,名稱,按讚數,討論人數\n";
+                System.out.println(elems.size());
+                // 遂筆處理
+                for (Element data : elems) {
 
 
-            String created_time = data.select("created_time").text();
-            String id = data.select("id").text();
-            String message = data.select("message").text();
-            String likes = data.select("likes > summary > total_count").text();
-//            String name = data.select("name").text();
-//            String likes = data.select("likes").text();
-//            String talking_about_count = data.select("talking_about_count").text();
+                    String created_time = data.select("created_time").text();
+                    String id = data.select("id").text();
+                    String message = data.select("message").text();
+                    String likes = data.select("likes > summary > total_count").text();
+                    String comments = data.select("comments > summary > total_count").text();
+//                  String name = data.select("name").text();
+//                  String likes = data.select("likes").text();
+//                  String talking_about_count = data.select("talking_about_count").text();
 //
-//            output += id+",\""+name+"\","+likes+","+talking_about_count+"\n";
-            System.out.println(created_time);
-            System.out.println(id);
-            System.out.println(message);
-            System.out.println(likes);
-            // Elasticsearch data format
+//                  output += id+",\""+name+"\","+likes+","+talking_about_count+"\n";
+//                    System.out.println(created_time);
+//                    System.out.println(id);
+//                    System.out.println(message);
+//                    System.out.println(likes);
+                    // Elasticsearch data format
 
 
-            String elasticJson = "{" +
-                    "\"created_time\":\"" + created_time + "\"" +
-                    ",\"message\":\"" + message + "\"" +
-                    ",\"likes\":" + likes +
-                    ",\"id\":\"" + id + "\"" +
-                    "}";
+                    String elasticJson = "{" +
+                            "\"created_time\":\"" + created_time + "\"" +
+                            ",\"message\":\"" + message + "\"" +
+                            ",\"likes\":" + likes +
+                            ",\"id\":\"" + id + "\"" +
+                            ",\"pagename\":\"" + pageName + "\"" +
+                            ",\"comments\":" + comments +
+                            "}";
 
 
+                    System.out.println(
+                            // curl -XPOST http://localhost:9200/pm25/data -d '{...}'
+                            sendPost("http://" + elasticHost + ":" + elasticPort
+                                            + "/" + elasticIndex + "/" + elasticIndexType
+                                    , elasticJson));
+                }
+            }catch(Exception e){}
 
-            System.out.println(
-                    // curl -XPOST http://localhost:9200/pm25/data -d '{...}'
-                    sendPost("http://" + elasticHost + ":" + elasticPort
-                                    + "/" + elasticIndex + "/" + elasticIndexType
-                            , elasticJson));
         }
-//        System.out.println( output );
     }
 
 
