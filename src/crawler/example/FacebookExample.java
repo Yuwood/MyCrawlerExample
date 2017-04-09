@@ -25,9 +25,9 @@ public class FacebookExample {
 		// [query sample]
 		// search?fields=name,id,likes,talking_about_count&limit=1000&q=靠北&type=page
 		String uri = 
-				"https://graph.facebook.com/v2.5"
-				+ "/search?q=%E9%9D%A0%E5%8C%97&type=page&limit=1000&fields=name,id,likes,talking_about_count"
-				+ "&access_token=EAACEdEose0cBAMzLyMlMxZAY73J1TBiZAHJhrF8du8fLhMmGYrUA3W9ezJDQk9oZAa07o4F2drZAL2k1cCtgdpl5LZClZCo6733A3xddNbjSAoTxEZBWY4rKnzLWTU3I0KMgT0qsw6eIRfdzg9RZCIkuTZCtGZCyzct657fywQpsFCNAZDZD";
+				"https://graph.facebook.com/v2.8"
+				+ "/iamball0228/feed?since=1483228800&until=1491638919&fields=id,likes.limit(0).summary(total_count),reactions.limit(0).summary(total_count)"
+				+ "&access_token=204620726697053%7Cc115418baec73ca230041cba5cdab724";
 
 
 
@@ -54,7 +54,7 @@ public class FacebookExample {
 		for( Element data: elems ){
 			String id = data.select("id").text();
 			String name = data.select("name").text();
-			String likes = data.select("likes").text();
+			String likes = data.select("fan_count").text();
 			String talking_about_count = data.select("talking_about_count").text();
 			
 			output += id+",\""+name+"\","+likes+","+talking_about_count+"\n";

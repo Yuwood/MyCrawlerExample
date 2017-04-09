@@ -29,7 +29,7 @@ class PttBoard {
     final static String pttIndexPage = "https://www.ptt.cc/bbs/"+board+"/index%s.html";
     
     // 取得最後幾篇的文章數量(bug?)
-    static Integer loadLastPosts = 20;
+    static Integer loadLastPosts = 30;
 
     public static void main(String[] argv){
 
